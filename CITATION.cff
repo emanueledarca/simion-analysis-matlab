@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it."
+type: software
+title: "mylib (+simion): MATLAB toolbox for SIMION/SRIM analysis"
+authors:
+  - family-names: "D'Arca"
+    given-names: "Emanuele"
+repository-code: "https://github.com/<TUO_USER>/<NOME_REPO>"
+license: MIT
+keywords:
+  - MATLAB
+  - SIMION
+  - SRIM
+  - time-of-flight
+  - ion optics
+affiliation: "Sapienza University of Rome - INAF/IAPS"
