@@ -156,3 +156,5 @@ rehash
 which simion.importSimionTofTable -all
 ```
 
+## Citazione
+Vedi `CITATION.cff` per citare correttamente la repo.
