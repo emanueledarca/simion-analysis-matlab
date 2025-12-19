@@ -1,68 +1,71 @@
-# mylib (+simion) — MATLAB toolbox per analisi SIMION/SRIM
+# simion-analysis-matlab (`+simion`) — MATLAB toolbox for SIMION/SRIM analysis
 
-Questa repo contiene una libreria MATLAB organizzata come **package** (`+simion`) con funzioni per importare/analizzare output SIMION e SRIM, fare plot e generare tabelle/LaTeX.
+MATLAB toolbox (package `+simion`) to import and analyze **SIMION**/**SRIM** outputs: beam statistics, **TOF–path** correlations, per-species plots, and utilities to export **LaTeX-ready** tables.
 
-## Struttura della repo
-- `+simion/` — funzioni principali (API pubblica) da chiamare come `simion.nomeFunzione(...)`.
-- `+simion/private/` — funzioni interne di supporto (non garantite/stabili come API).
-- `example/` — script di esempio per import/analisi/plot.
+---
 
-Per l’elenco completo delle funzioni:
-- `README_simion.md` (funzioni pubbliche)
-- `+simion/private/README_private_simion.md` (funzioni interne)
+## Repository layout
 
-## Requisiti
-- MATLAB R2018b o più recente (in generale funziona anche prima, ma non garantito).
-- Nessuna toolbox extra obbligatoria (salvo funzioni che richiedano specifiche toolbox).
+- `+simion/` — **public API** (main functions) called as `simion.functionName(...)`.
+- `+simion/private/` — internal helpers (**not** a stable API).
+- `example/` — small, portable examples (quickstart / import test / basic analysis).
+- `scripts/` — “ready-to-run” but more **project-oriented** scripts:
+  - `scripts/tof/` — TOF-focused analyses (e.g., O6+).
+  - `scripts/trajectories/` — trajectories analyses (beam evolution, detector, SRIM transmit, etc.).
+  - scripts README: `scripts/trajectories/README_scripts.md`.
 
-## Installazione (consigliata: con Git)
-Scegli una cartella dove tieni le tue librerie MATLAB, ad esempio:
+Full function lists:
+- `+simion/README_simion.md` (public functions)
+- `+simion/private/README_private_simion.md` (internal helpers)
 
-- macOS/Linux: `~/MATLAB/`
-- Windows: `C:\Users\<tuo_utente>\Documents\MATLAB\`
+---
 
-### macOS/Linux (Terminale)
+## Requirements
+
+- MATLAB R2018b or newer (older versions may work but are not guaranteed).
+- No mandatory toolboxes (unless a specific function explicitly requires one).
+
+---
+
+## Installation
+
+### 1) Clone the repository
+
+**macOS/Linux (Terminal)**
 ```bash
 cd ~/MATLAB
-git clone https://github.com/<TUO_USER>/<NOME_REPO>.git mylib
+git clone https://github.com/emanueledarca/simion-analysis-matlab.git
 ```
 
-### Windows (PowerShell)
+**Windows (PowerShell)**
 ```powershell
 cd $HOME\Documents\MATLAB
-git clone https://github.com/<TUO_USER>/<NOME_REPO>.git mylib
+git clone https://github.com/emanueledarca/simion-analysis-matlab.git
 ```
 
-La struttura attesa è tipo:
-```
-mylib/
-  +simion/
-  example/
-  README_simion.md
-```
+---
 
-## Aggiungere la libreria al path di MATLAB
+## Add the toolbox to the MATLAB path
 
-### Opzione A — Caricamento automatico ad ogni avvio (startup.m) [consigliata]
-MATLAB esegue automaticamente un file chiamato `startup.m` **se** si trova in una cartella sul MATLAB path (tipicamente la tua `userpath`, cioè `Documents/MATLAB`).
+### Option A — Auto-load on startup (`startup.m`) [recommended]
+MATLAB runs a file named `startup.m` automatically if it is located in a folder on the MATLAB path (typically your `userpath`, i.e. `Documents/MATLAB`).
 
-1) In MATLAB, scopri la tua `userpath`:
+1) In MATLAB, check your `userpath`:
 ```matlab
 userpath
 ```
 
-2) Se non esiste già, crea (o modifica) questo file:
-- `startup.m` dentro la cartella mostrata da `userpath`
+2) Create/edit `startup.m` inside the folder returned by `userpath`.
 
-3) Dentro `startup.m` metti (cross-platform Windows/macOS/Linux):
+3) Add this block (cross-platform):
 
 ```matlab
-% --- mylib startup: aggiunge la repo al MATLAB path (cross-platform)
-up = userpath;                         % può contenere più path separati da pathsep
-up = strtok(up, pathsep);              % prende il primo
-up = strtrim(up);                      % pulizia
-repoDir = fullfile(up, "mylib");       % se hai clonato mylib dentro la userpath
+% --- simion-analysis-matlab startup: add repo to the MATLAB path
+up = userpath;                  % may contain multiple paths separated by pathsep
+up = strtok(up, pathsep);       % keep the first one
+up = strtrim(up);
 
+repoDir = fullfile(up, "simion-analysis-matlab");   % if you cloned inside userpath
 if isfolder(repoDir)
     addpath(genpath(repoDir));
 end
@@ -70,91 +73,75 @@ end
 clear up repoDir
 ```
 
-4) Riavvia MATLAB e verifica:
+4) Restart MATLAB and verify:
 ```matlab
 which simion.importSimionTofTable -all
 ```
 
-Se vedi un path dentro `.../mylib/+simion/...` sei a posto.
-
-> Nota: con `+simion` basta che **la cartella padre** (cioè `mylib/`) sia sul path. Non serve aggiungere `+simion/` direttamente.
+> Note: since this is a `+simion` package, you only need the **repo root** on the MATLAB path.
 
 ---
 
-### Opzione B — Caricamento “manuale” quando serve (senza startup)
-Se non vuoi toccare lo startup, basta aggiungere il path **una volta per sessione**:
-
+### Option B — Manual load (per session)
 ```matlab
-addpath(genpath("/percorso/assoluto/verso/mylib"))
-```
-
-Esempi:
-```matlab
-% macOS/Linux
-addpath(genpath(fullfile(userpath, "mylib")))
-
-% Windows (va bene anche con slash /)
-addpath(genpath("C:/Users/<tuo_utente>/Documents/MATLAB/mylib"))
-```
-
-Verifica:
-```matlab
-help simion
-```
-
----
-
-### Opzione C — “Set Path” (GUI MATLAB)
-1) Home → **Set Path** → **Add Folder…**
-2) Seleziona la cartella `mylib/`
-3) **Save**
-
-È comoda, ma meno “riproducibile” rispetto a Git + `startup.m`.
-
-## Primo test rapido
-Apri MATLAB e prova un import (adatta i file ai tuoi):
-
-```matlab
-T = simion.importSimionTofTable("data/tof_table.txt");
-head(T)
-```
-
-Oppure lancia uno degli esempi in `example/`.
-
-## Come usare le funzioni
-Le funzioni sono in un package chiamato `simion`, quindi si chiamano così:
-
-```matlab
-simion.analyzeBeamFile(...)
-simion.plotTofBySpecies(...)
-simion.srimFitResultsToLatex(...)
-```
-
-- Documentazione “pubblica”: vedi `README_simion.md`
-- Funzioni interne/non-API: vedi `+simion/private/README_private_simion.md`
-
-## Aggiornare la libreria
-Se l’hai clonata con Git:
-
-```bash
-cd /percorso/verso/mylib
-git pull
-```
-
-## Troubleshooting
-**Errore: “Undefined function or variable 'simion'”**
-- La cartella `mylib/` non è sul path.
-- Fai:
-```matlab
-addpath(genpath("/percorso/verso/mylib"))
+addpath(genpath("/absolute/path/to/simion-analysis-matlab"))
 rehash
 ```
 
-**Conflitti di nomi / funzioni duplicate**
-- Controlla cosa sta risolvendo MATLAB:
+---
+
+## Quick start (30 seconds)
+
+In MATLAB:
+
+```matlab
+which simion.analyzeBeamFile -all
+help simion.importSimionTofTable
+```
+
+Then run one of the scripts in `example/`.
+
+---
+
+## Using the toolbox
+
+Public functions live in the `simion` package:
+
+```matlab
+T = simion.importSimionTofTable("myfile.txt");
+simion.plotTofBySpecies(T);
+```
+
+---
+
+## Ready-to-run scripts (project-oriented)
+
+See `scripts/` for analyses tailored to common workflows (TOF and trajectories).  
+Start from: `scripts/trajectories/README_scripts.md`.
+
+Practical note: some scripts assume a project folder structure like `Trajectories/` (e.g., `data_raw`, `data_processed`, `figures`). If your project differs, edit the paths/parameters in the “inputs” section at the top of each script.
+
+---
+
+## Citation
+
+- `CITATION.cff` (GitHub exposes “Cite this repository” automatically).
+
+---
+
+## Troubleshooting
+
+**Error: “Undefined function or variable 'simion'”**
+```matlab
+addpath(genpath("/absolute/path/to/simion-analysis-matlab"))
+rehash
+```
+
+**Name conflicts / duplicated functions**
 ```matlab
 which simion.importSimionTofTable -all
 ```
 
-## Citazione
-Vedi `CITATION.cff` per citare correttamente la repo.
+---
+
+

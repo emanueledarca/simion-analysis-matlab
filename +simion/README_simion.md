@@ -1,45 +1,39 @@
 # Package `+simion`
 
-Raccolta di funzioni MATLAB per l’analisi dei file di output di SIMION
-(ion optics / beam analysis), pensata per l’uso in tesi e nei test di
-laboratorio.
+Collection of MATLAB functions to analyze SIMION output files (ion optics / beam analysis), designed for thesis work and laboratory/testing pipelines.
 
-Il package fornisce:
+This package provides:
 
-- funzioni di **import** verso `table`,
-- strumenti per l’analisi del **TOF per specie**,
-- funzioni per le **statistiche di fascio** (ingresso/uscita e detector),
-- funzioni per l’**evoluzione del fascio** lungo X,
-- strumenti per **mappe polari al detector**,
-- utilità per esportare i risultati in **LaTeX**,
-- una funzione di alto livello `analyzeBeamFile` che automatizza il flusso
-  di analisi per un singolo file,
-- funzioni per **SRIM** (import + fit + LaTeX).
+- **import** functions returning `table`s,
+- **TOF-by-species** analysis tools,
+- **beam statistics** (in/out and detector),
+- **beam evolution** along X,
+- **detector polar maps**,
+- utilities to export results to **LaTeX**,
+- a high-level `analyzeBeamFile` function to automate a single-file workflow,
+- **SRIM** utilities (import + Gaussian fits + LaTeX export).
 
-> Tutte le funzioni “di servizio” sono in `+simion/private` e **non fanno
-> parte dell’API pubblica** (nomi e interfacce possono cambiare).
+> All “service” functions live in `+simion/private` and are **not part of the public API**
+> (names and interfaces may change).
 
 ---
 
-## Installazione / Setup
+## Installation / Setup
 
-1. Metti la cartella `+simion` in una directory che è (o verrà) aggiunta al
-   path MATLAB, ad esempio:
+1. Place the repo root (the folder that contains `+simion/`) somewhere you can add to the MATLAB path:
 
    ```matlab
-   addpath('/path/alla/cartella/con/+simion');
+   addpath('/path/to/repo-root');   % the folder that contains +simion/
    ```
 
-2. Opzionale: aggiungi questa riga al tuo `startup.m` per caricare il
-   package automaticamente all’avvio di MATLAB.
+2. Optional: add the same `addpath(...)` line to your `startup.m` to auto-load the package at MATLAB startup.
 
-3. Gli **script di esempio** (`example_*.m`, `test_importSimion.m`) vanno
-   tenuti **fuori** da `+simion`, ad esempio in una cartella `examples/`:
+3. Example scripts (`example_*.m`, `test_importSimion.m`) should live **outside** `+simion/`, e.g.:
 
    ```text
    my-project/
      +simion/
-       (tutte le funzioni della libreria)
+       (library functions)
      examples/
        example_ImportAndTof.m
        example_BeamAnalysis.m
@@ -49,28 +43,27 @@ Il package fornisce:
 
 ---
 
-## Flusso base: da file SIMION a TOF per specie
+## Basic workflow: SIMION file → per-species TOF
 
-Esempio minimale: import di un file SIMION e plot del TOF per specie.
+Minimal example: import a SIMION output file and plot TOF by species.
 
 ```matlab
-% Nome del file di output SIMION (txt/csv)
 fname = "run_8keV.txt";
 
-% 1) Import "alto livello" per analisi TOF
+% 1) High-level import for TOF analysis
 T = simion.importSimionTofTable(fname);
 
-% 2) Plot TOF per specie con fit gaussiano (bin globali)
+% 2) Plot per-species TOF with Gaussian fits (global bins)
 FitResults = simion.plotTofBySpecies(T, "pdf", 60);
 ```
 
-Questa è sostanzialmente la logica di `example_ImportAndTof.m`.
+This is essentially what `example_ImportAndTof.m` does.
 
 ---
 
-## Analisi completa con `analyzeBeamFile`
+## Full analysis with `analyzeBeamFile`
 
-Per una analisi “end-to-end” di un singolo file:
+End-to-end analysis of a single file:
 
 ```matlab
 fname = "run_8keV.txt";
@@ -80,194 +73,140 @@ results = simion.analyzeBeamFile(fname, ...
     'Rcenter',    [37.5 0], ...
     'PolarRmax',  20);
 
-% Campi principali della struct results:
-%   results.T                  -> table RAW importata (tutti i record)
-%   results.tofFits            -> struct/table con i fit di TOF
-%   results.beamStatsInOut     -> stats fascio in ingresso/uscita
-%   results.beamStatsDetector  -> stats fascio al detector
-%   results.polarMap           -> mappe polari (se abilitate)
+% Main fields in results:
+%   results.T                  -> raw imported table (all records)
+%   results.tofFits            -> TOF fit results
+%   results.beamStatsInOut     -> in/out beam stats
+%   results.beamStatsDetector  -> detector stats
+%   results.polarMap           -> polar maps (if enabled)
 ```
 
-Di default `analyzeBeamFile` **salva** anche un file `.mat` con gli stessi
-risultati, nella forma:
+By default, `analyzeBeamFile` also saves a `.mat` file:
 
 ```text
-<nome_file>_results.mat   % contiene la struct "results"
+<filename>_results.mat   % contains the "results" struct
 ```
 
-(Questo comportamento è controllato dai parametri Name–Value interni
-alla funzione.)
+(Controlled via Name–Value parameters inside the function.)
 
 ---
 
-## Funzioni principali
+## Main functions
 
 ### Import
 
 - `simion.importSimionRecordTable(filename)`  
-  Import generico di un file di output SIMION in una `table`.  
-  Normalizza i nomi delle colonne (via `canonicalizeSimionNames`) e
-  conserva i nomi originali in
+  Generic SIMION import into a `table`.  
+  Normalizes column names (via `canonicalizeSimionNames`) and stores the original names in
   `T.Properties.VariableDescriptions`.
 
 - `simion.importSimionTofTable(filename)`  
-  Wrapper specializzato per l’analisi TOF: chiama
-  `importSimionRecordTable`, verifica la presenza delle colonne
-  necessarie (`TOF`, `Mass`, `Charge`) e riordina le colonne
-  mettendo per prime quelle standard.
+  TOF-oriented wrapper: calls `importSimionRecordTable`, checks for required columns
+  (`TOF`, `Mass`, `Charge`), and reorders columns putting standard ones first.
 
 - `simion.importSrimTransmit(filenames)`  
-  Importa uno o più file SRIM del tipo `TRANSMIT_*.txt` e calcola i
-  fit gaussiani delle distribuzioni (energia, angoli, posizione).
-  Restituisce:
-  - `Data`      – cell array di struct con tabella raw + info su specie/energia;
-  - `FitResults` – struct array con parametri dei fit (µ, σ, FWHM, ecc.).
+  Imports one or more SRIM `TRANSMIT_*.txt` files and fits Gaussian distributions
+  (energy, angles, position). Returns:
+  - `Data` — cell array of structs with raw tables + species/energy info;
+  - `FitResults` — struct array with fit parameters (µ, σ, FWHM, etc.).
 
 ---
 
-### Analisi del fascio
+### Beam analysis
 
 - `simion.analyzeBeamFile(filename, ...)`  
-  Funzione ad alto livello che:
-  1. importa i dati (`importSimionTofTable`),
-  2. calcola le **statistiche in ingresso/uscita** (`computeBeamStatsInOut`),
-  3. calcola le **statistiche al detector** (`computeBeamStatsAtDetector`),
-  4. esegue i **fit di TOF per specie**,
-  5. opzionalmente genera **mappe polari** (`plotDetectorPolarMapBySpecies`)
-     e grafici di evoluzione del fascio (`plotBeamEvolutionY/Z`),
-  6. salva i risultati in un file `.mat`.
+  High-level function that:
+  1. imports data (`importSimionTofTable`),
+  2. computes **in/out stats** (`computeBeamStatsInOut`),
+  3. computes **detector stats** (`computeBeamStatsAtDetector`),
+  4. performs **TOF fits per species**,
+  5. optionally generates **polar maps** (`plotDetectorPolarMapBySpecies`) and beam evolution plots (`plotBeamEvolutionY/Z`),
+  6. saves results to `.mat`.
 
 - `simion.computeBeamStatsInOut(T, ...)`  
-  Calcola le statistiche del fascio **in ingresso** (sorgente) e
-  **in uscita** (piano del detector x_out) per ogni specie: numero di
-  particelle, µ_y, σ_y, µ_z, σ_z, µ_r, σ_r, ecc.  
-  Restituisce una struct `stats` con campi:
-  - `SpotBySpecies` – table con una riga per specie;
-  - `SeparationY`   – separazioni in y tra coppie di specie;
-  - `SeparationR`   – separazioni in r tra coppie di specie.
+  Computes beam stats at the **entrance** (source) and **exit** (detector plane `x_out`) per species:
+  counts, µ_y, σ_y, µ_z, σ_z, µ_r, σ_r, etc. Returns a struct with:
+  - `SpotBySpecies` — one row per species,
+  - `SeparationY` — Y separations between species pairs,
+  - `SeparationR` — radial separations between species pairs.
 
 - `simion.computeBeamStatsAtDetector(T, ...)`  
-  Analisi statistica **solo** al piano del detector x_out, utile se non
-  interessa l’ingresso. Restituisce una struct con parametri simili
-  ma focalizzati sull’uscita.
+  Statistics at the detector plane only (useful if entrance stats are not needed).
 
 - `simion.computeBeamEvolutionY(inputArg, ...)`  
-  Calcola l’evoluzione longitudinale (lungo X) di µ_y(x), σ_y(x),
-  e opzionalmente µ_z(x), σ_z(x) per ogni specie, individuando in modo
-  automatico i diversi piani x_k dai dati SIMION.
+  Computes longitudinal evolution along X of µ_y(x), σ_y(x) (and optionally µ_z(x), σ_z(x)) per species,
+  automatically detecting the x-planes from SIMION data.
 
 - `simion.analyzeTofPathCorrelation(T, Lmin, XTol)`  
-  Analizza la correlazione **TOF–L** per gli elettroni in due modi:
-  1. tutte le particelle con L ≥ Lmin;
-  2. tutte le particelle che arrivano al piano x ≈ Xmax.  
-  Restituisce due struct (`stats_Lmin`, `stats_det`) con le statistiche
-  di queste due popolazioni.
+  Analyzes the electron **TOF–L** correlation in two selections:
+  1. all particles with L ≥ Lmin;
+  2. all particles reaching the plane x ≈ Xmax.  
+  Returns two structs (`stats_Lmin`, `stats_det`) with summary stats.
 
 ---
 
-### Plot del fascio / TOF / mappe polari
+### Beam / TOF / polar plots
 
 - `simion.plotTofBySpecies(T, mode, nbins, ...)`  
-  Entry point unico per i plot di TOF per specie.  
-  Usa internamente le funzioni in `private`:
-  - `mode = "pdf"`          → `plotTofPdfBySpecies`
-  - `mode = "hist-global"`  → `plotTofHistogramBySpecies`
-  - `mode = "hist-local"`   → `plotTofHistogramBySpeciesLocalBins`
+  Single entry point for per-species TOF plots. Internally uses `private` helpers:
+  - `mode = "pdf"`         → `plotTofPdfBySpecies`
+  - `mode = "hist-global"` → `plotTofHistogramBySpecies`
+  - `mode = "hist-local"`  → `plotTofHistogramBySpeciesLocalBins`
 
-  Esempio rapido:
-
+  Example:
   ```matlab
   FitResults = simion.plotTofBySpecies(T, "hist-local", 60);
   ```
 
 - `simion.plotFinalSpotBySpecies(T, ...)`  
-  Scatter del “final spot” sul rivelatore, separato per specie.  
-  Crea tre figure (XY, XZ, YZ) e restituisce gli axes.
+  Scatter of the final spot at the detector, split by species (XY, XZ, YZ).
 
-- `simion.plotBeamEvolutionY(inputArg, ...)`  
-  Wrapper grafico per `computeBeamEvolutionY`.  
-  Restituisce:
-  - `figHandles(1)` – µ_y(x) per specie,
-  - `figHandles(2)` – σ_y(x) per specie,
-  - `stats`         – stessa struct di `computeBeamEvolutionY`.
-
-- `simion.plotBeamEvolutionZ(inputArg, ...)`  
-  Come sopra, ma per µ_z(x) e σ_z(x).
+- `simion.plotBeamEvolutionY(inputArg, ...)` / `simion.plotBeamEvolutionZ(inputArg, ...)`  
+  Plot wrappers around `computeBeamEvolutionY`, producing µ and σ evolution plots.
 
 - `simion.plotDetectorPolarMapBySpecies(T, ...)`  
-  Costruisce una **mappa polare di densità** degli impatti al detector
-  nel piano YZ, per specie.  
-  Utile per visualizzare la distribuzione angolare spaziale al rivelatore.
+  Builds a per-species polar density map of impacts on the detector in the YZ plane.
 
 ---
 
-### Export in LaTeX / combinazione fit
+### LaTeX export / fit combination
 
 - `simion.beamStatsToLatex(SpotTable, ...)`  
-  Esporta le statistiche di fascio (tipicamente `stats.SpotBySpecies`)
-  in una tabella LaTeX, con nomi di colonne “paper-ready”.
+  Exports beam statistics (typically `stats.SpotBySpecies`) to a LaTeX table.
 
 - `simion.beamSeparationToLatex(stats, ...)`  
-  Esporta le S di separazione (`stats.SeparationY` o `stats.SeparationR`)
-  in una tabella LaTeX.
+  Exports separation tables (`stats.SeparationY` / `stats.SeparationR`) to LaTeX.
 
 - `simion.srimFitResultsToLatex(FitResults, outFile)`  
-  Esporta i risultati dei fit SRIM (ritornati da `importSrimTransmit`)
-  in una tabella LaTeX compatta, con righe del tipo:
-
-  ```text
-  Specie & E_nom [keV] & Quantità & mu & FWHM & unità
-  ```
+  Exports SRIM fit results to a compact LaTeX table.
 
 - `simion.tableToLatex(Tw, params, outFile, ...)`  
-  Converte una tabella “wide” di fit (es. output di `combineFitStructs`)
-  in una tabella LaTeX “paper-grade”.
+  Converts a “wide” fit table (e.g., from `combineFitStructs`) into a paper-ready LaTeX table.
 
 - `simion.combineFitStructs(fitStructs, labels)`  
-  Unisce N struct di fit (per energie diverse) in una singola table wide
-  con colonne tipo `mu_8`, `mu_14`, `sigma_8`, ..., `FWHM_20`, ecc.
+  Merges multiple fit structs (e.g., different energies) into a single wide table.
 
 - `simion.srimPlotGaussianCheck(xData, fitParams, quantityLabel, ...)`  
-  Utility per SRIM: istogramma dei dati + curva gaussiana fittata,
-  con salvataggio automatico di PNG e FIG.
+  SRIM utility: histogram + fitted Gaussian, with optional PNG/FIG saving.
 
 ---
 
-## Esempi inclusi (cartella `examples/`)
+## Included examples (`example/`)
 
-- `example_ImportAndTof.m`  
-  Import di un file SIMION con `importSimionTofTable` e plot del TOF per
-  specie con `plotTofBySpecies`.
+- `example_ImportAndTof.m` — import + per-species TOF plot.
+- `example_BeamAnalysis.m` — full analysis of a single energy via `analyzeBeamFile`.
+- `example_BeamAnalysis_MultiEnergy.m` — multi-energy loop + combined LaTeX export.
+- `test_importSimion.m` — import sanity checks + final-spot plots.
 
-- `example_BeamAnalysis.m`  
-  Analisi completa di fascio per una singola energia con
-  `analyzeBeamFile`, più export delle stats al detector con
-  `beamStatsToLatex`.
-
-- `example_BeamAnalysis_MultiEnergy.m`  
-  Esecuzione di `analyzeBeamFile` su più file (energie diverse),
-  raccolta delle `beamStatsDetector` in una singola tabella e export
-  via `beamStatsToLatex`.
-
-- `test_importSimion.m`  
-  Script di prova per:
-  - `importSimionTofTable`,
-  - `splitBySpecies` (in `private`),
-  - `plotFinalSpotBySpecies` (proiezioni XY, XZ, YZ).
-
-Questi script **non fanno parte dell’API**: sono solo esempi di utilizzo
-da copiare/adattare.
+These scripts are **not** API: they are usage examples to copy/adapt.
 
 ---
 
-## Note finali
+## Notes
 
-- Il package è pensato per essere aggiunto al path MATLAB (o messo in una
-  cartella “mylib” caricata all’avvio).
-- Le funzioni in `+simion/private` sono interne e possono cambiare senza
-  preavviso.
-- Per dettagli su opzioni e parametri, usare l’`help` di MATLAB:
+- Functions in `+simion/private` are internal and may change without notice.
+- For details on parameters and options, use MATLAB help:
 
   ```matlab
-  help simion.nomeFunzione
+  help simion.functionName
   ```
