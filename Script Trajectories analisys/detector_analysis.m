@@ -6,7 +6,7 @@
 %% 0) Parametri di input
 
 % Nome del file dentro data_raw/trajectories
-inputFileName = 'SRIM10keV';   % <-- cambia qui se usi altri file
+inputFileName = 'filename.txt';   % <-- cambia qui se usi altri file
 
 % SPECIE da analizzare:
 %   - []           -> tutte le specie (usa il default "all" di analyzeBeamFile)
@@ -27,11 +27,11 @@ polarRmax = [];
 thisDir  = fileparts(mfilename('fullpath'));    % .../matlab/scipts
 projRoot = fileparts(fileparts(thisDir));       % -> .../Trajectories
 
-% Cartelle secondo il tree che abbiamo deciso
-rawTrajDir = fullfile(projRoot, 'data_raw', 'trajectories');
-matDir     = fullfile(projRoot, 'data_processed', 'mat10keV');
-tabDir     = fullfile(projRoot, 'data_processed', 'tables10keV');
-figDir     = fullfile(projRoot, 'figures', 'final10keV');
+% Cartelle secondo il tree DA CAMBIARE IN BASE ALLA PROPRIA STRUTTURA
+rawTrajDir = fullfile(projRoot, 'data_raw', 'trajectories'); % dove ci sono i dati
+matDir     = fullfile(projRoot, 'data_processed', 'mat10keV'); %dove salvare
+tabDir     = fullfile(projRoot, 'data_processed', 'tables10keV'); %dove salbare
+figDir     = fullfile(projRoot, 'figures', 'final10keV'); %dove salvare
 
 % Creo le cartelle di output se mancano
 if ~exist(matDir, 'dir'), mkdir(matDir); end

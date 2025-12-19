@@ -18,7 +18,7 @@ clear; clc; close all;
 %% 0) Parametri di input
 
 % Nome del file dentro data_raw/trajectories
-inputFileName = 'beamevol.txt';    % <-- cambia qui il file
+inputFileName = 'filename.txt';    % <-- cambia qui il file
 
 % SPECIE da analizzare:
 %   []              -> tutte le specie (usa "all" nella compute)
@@ -37,7 +37,8 @@ SaveFigures = true;
 % Tag per i file di output (se vuoto viene costruito dal nome del file)
 OutputTag = '';
 
-%% 1) Struttura delle cartelle (stile "Trajectories")
+%% 1) Struttura delle cartelle (stile "Trajectories") da CAMBIARE
+%% IN BASE ALLA PROPRIA STRUTTURA
 
 
 scriptsDir = fileparts(mfilename('fullpath'));    % .../Trajectories/matlab/scripts

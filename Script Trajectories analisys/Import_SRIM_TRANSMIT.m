@@ -24,6 +24,7 @@ y0_geom_mm = 37.35;
 scriptsDir = fileparts(mfilename('fullpath'));
 projRoot   = fileparts(fileparts(scriptsDir));   % .../Trajectories
 
+%%output dir da cambiare a piacere
 srimDir    = fullfile(projRoot, 'data_raw',      'srim10keV');
 outRootDir = fullfile(projRoot, 'data_processed','srim10keV');
 outMatDir  = outRootDir;                        % .mat qui
@@ -49,6 +50,8 @@ if ~exist(figYDir,      'dir'), mkdir(figYDir);      end
 if ~exist(figZDir,      'dir'), mkdir(figZDir);      end
 %% 2) Elenco dei file SRIM da importare (nomi base)
 
+
+%% nomi dei file DA CAMBIARE (esempi)
 filenames = [
     "H_plus_10keV.txt"
     "He_plus_10keV.txt"

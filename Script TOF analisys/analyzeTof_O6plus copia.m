@@ -1,10 +1,10 @@
 function FitO6 = analyzeTof_O6plus(fname, nbins, xlimUser)
 % analyzeTof_O6plus  Importa un file SIMION e fa il plot della TOF per O6+.
 %
-%   FitO6 = analyzeTof_O6plus("run_8keV.txt");
+%   FitO6 = analyzeTof_O6plus("filename.txt");
 %
 % INPUT:
-%   fname    : nome del file SIMION (es. "run_8keV.txt" o ".rec")
+%   fname    : nome del file SIMION (es. "filename.txt" o ".rec")
 %   nbins    : numero di bin per l'istogramma (default 60)
 %   xlimUser : [tmin tmax] opzionale per il range TOF (stessi units del file)
 %

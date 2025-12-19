@@ -15,16 +15,16 @@
 
 clear; clc; close all;
 
-%% 1) Root del progetto e cartelle
+%% 1) Root del progetto e cartelle DA CAMBIARE IN BASE ALLA PROPRIA STRUTTURA
 
 scriptsDir = fileparts(mfilename('fullpath'));      % .../Trajectories/matlab/scripts
 projRoot   = fileparts(fileparts(scriptsDir));      % .../Trajectories
 
 % File raw (stesso manual.txt usato per l'analisi al detector)
-rawTrajDir = fullfile(projRoot, 'data_raw', 'trajectories');
-inputFile  = fullfile(rawTrajDir, 'electron.txt');
+rawTrajDir = fullfile(projRoot, 'data_raw', 'trajectories'); %cartella dati
+inputFile  = fullfile(rawTrajDir, 'nomefile.txt');  %nome file
 
-% Cartelle di output per l'analisi TOF degli elettroni
+% Cartelle di output per l'analisi TOF degli elettroni DA CAMBIARE A PIACERE
 tofProcDir = fullfile(projRoot, 'data_processed', 'tof', 'electrons');
 figDir     = fullfile(projRoot, 'figures',        'tof', 'electrons');
 
