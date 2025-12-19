@@ -1,0 +1,10 @@
+# MATLAB
+*.asv
+*.m~
+*.mex*
+*.mlappinstall
+*.slxc
+*.autosave
+
+# macOS
+.DS_Store
